@@ -67,11 +67,13 @@ pip install torch torchvision torchaudio
 pip install transformers diffusers opencv-python scipy gradio==4.44.1 sympy==1.13.1
 pip install "httpx[socks]" datasets
 
-# Run sample code
-python main.py
+huggingface-cli login
 
 # Run gradio demo
 python app.py
+
+# Run sample code
+python main.py
 
 # Run Consistory+ benchmark
 python -m resource.gen_benchmark --save_dir ./result/benchmark --benchmark_path ./resource/consistory+.yaml
