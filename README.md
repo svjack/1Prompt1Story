@@ -109,7 +109,7 @@ display.Image("one_piece_flower.png")
 
 ![one_piece_flower](https://github.com/user-attachments/assets/a7d9e136-d388-48af-a829-08ae0ecd01bd)
 
-- Anime Style Compare
+- Anime Background Style Compare
 ```python
 from gradio_client import Client
 from PIL import Image
