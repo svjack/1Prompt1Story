@@ -47,7 +47,7 @@
 
 ```bash
 # Clone this repository
-$ git clone https://github.com/byliutao/1Prompt1Story
+$ git clone https://github.com/svjack/1Prompt1Story
 
 # Go into the repository
 $ cd 1Prompt1Story
