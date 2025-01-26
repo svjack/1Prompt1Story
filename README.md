@@ -149,7 +149,8 @@ model_paths = [
     "cagliostrolab/animagine-xl-3.1", "svjack/GenshinImpact_XL_Base",
     "stabilityai/stable-diffusion-xl-base-1.0", "RunDiffusion/Juggernaut-X-v10", 
     "playgroundai/playground-v2.5-1024px-aesthetic", "SG161222/RealVisXL_V4.0", 
-    "RunDiffusion/Juggernaut-XI-v11", "SG161222/RealVisXL_V5.0"
+    "RunDiffusion/Juggernaut-XI-v11", 
+    #"SG161222/RealVisXL_V5.0"
 ]
 
 # 创建保存图片的目录
