@@ -222,7 +222,10 @@ os.makedirs(generated_dataset_dir, exist_ok=True)
 # 保存数据集到本地
 dataset.save_to_disk(generated_dataset_dir)
 
-dataset.push_to_hub("svjack/OnePromptOneStory-AnimeStyle")
+from PIL import Image
+ds = dataset.map(lambda x: {"Image": Image.open(x["image"])}).remove_columns(["image"])
+
+ds.push_to_hub("svjack/OnePromptOneStory-AnimeStyle")
 
 print(f"数据集生成并保存完成！图片保存到：{generated_images_dir}，数据集保存到：{generated_dataset_dir}")
 ```
