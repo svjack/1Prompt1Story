@@ -23,7 +23,7 @@ def main_gradio(model_path, id_prompt, frame_prompt_list, precision, seed, windo
     if seed == -1:
         seed = random.randint(0, 2**32 - 1)
     frame_prompt_list = frame_prompt_list.split(",")
-    pipe, _ = utils.load_pipe_from_path(model_path, "cuda:1", torch.float16 if precision == "fp16" else torch.float32, precision)
+    pipe, _ = utils.load_pipe_from_path(model_path, "cuda:0", torch.float16 if precision == "fp16" else torch.float32, precision)
     
     if interrupt_flag:
         print("Generation interrupted")
@@ -36,7 +36,7 @@ def main_gradio(model_path, id_prompt, frame_prompt_list, precision, seed, windo
 
         return
 
-    unet_controller = load_unet_controller(pipe, "cuda:1")
+    unet_controller = load_unet_controller(pipe, "cuda:0")
     unet_controller.Alpha_enhance = alpha_enhance
     unet_controller.Beta_enhance = beta_enhance
     unet_controller.Alpha_weaken = alpha_weaken
