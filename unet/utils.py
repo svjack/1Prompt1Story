@@ -194,6 +194,7 @@ def gen_dropout_mask(out_shape, unet_controller: Optional[UNetController], drop_
     return concatenated_mask
 
 
+'''
 def load_pipe_from_path(model_path, device, torch_dtype, variant):
     model_name = model_path.split('/')[-1]
     if model_path.split('/')[-1] == 'playground-v2.5-1024px-aesthetic':
@@ -210,6 +211,36 @@ def load_pipe_from_path(model_path, device, torch_dtype, variant):
     text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder", torch_dtype=torch_dtype, variant=variant,)
     text_encoder_2 = CLIPTextModelWithProjection.from_pretrained(model_path, subfolder="text_encoder_2", torch_dtype=torch_dtype, variant=variant,)
     unet_new = UNet2DConditionModel.from_pretrained(model_path, subfolder="unet", torch_dtype=torch_dtype, variant=variant,)
+    
+    pipe = pipeline_stable_diffusion_xl.StableDiffusionXLPipeline(
+        vae=vae,
+        text_encoder=text_encoder,
+        text_encoder_2=text_encoder_2,
+        tokenizer=tokenizer,
+        tokenizer_2=tokenizer_2,
+        unet=unet_new,
+        scheduler=scheduler,
+    )
+    pipe.to(device)
+
+    return pipe, model_name
+'''
+def load_pipe_from_path(model_path, device, torch_dtype, variant):
+    model_name = model_path.split('/')[-1]
+    if model_path.split('/')[-1] == 'playground-v2.5-1024px-aesthetic':
+        scheduler = EDMDPMSolverMultistepScheduler.from_pretrained(model_path, subfolder="scheduler", torch_dtype=torch_dtype, )
+    else:
+        scheduler = EulerDiscreteScheduler.from_pretrained(model_path, subfolder="scheduler", torch_dtype=torch_dtype, )
+    
+    if model_path.split('/')[-1] == 'Juggernaut-X-v10' or model_path.split('/')[-1] == 'Juggernaut-XI-v11':
+        variant = None
+
+    vae = AutoencoderKL.from_pretrained(model_path, subfolder="vae", torch_dtype=torch_dtype,)
+    tokenizer = CLIPTokenizer.from_pretrained(model_path, subfolder="tokenizer", torch_dtype=torch_dtype, )
+    tokenizer_2 = CLIPTokenizer.from_pretrained(model_path, subfolder="tokenizer_2", torch_dtype=torch_dtype, )
+    text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder", torch_dtype=torch_dtype, )
+    text_encoder_2 = CLIPTextModelWithProjection.from_pretrained(model_path, subfolder="text_encoder_2", torch_dtype=torch_dtype, )
+    unet_new = UNet2DConditionModel.from_pretrained(model_path, subfolder="unet", torch_dtype=torch_dtype, )
     
     pipe = pipeline_stable_diffusion_xl.StableDiffusionXLPipeline(
         vae=vae,
