@@ -21,6 +21,41 @@
 
 </div>
 
+```bash
+sudo apt-get update && sudo apt-get install git-lfs ffmpeg cbm
+
+# Clone this repository
+git clone https://github.com/svjack/1Prompt1Story
+
+# Go into the repository
+cd 1Prompt1Story
+
+### Install dependencies ###
+conda create --name 1p1s python=3.10
+conda activate 1p1s
+
+# Install ipykernel and add the environment to Jupyter
+pip install ipykernel
+python -m ipykernel install --user --name 1p1s --display-name "1p1s"
+### Install dependencies ENDs ###
+
+# Install PyTorch with CUDA 12.1
+#pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install torch torchvision torchaudio
+
+# Install other dependencies using pip
+pip install transformers diffusers opencv-python scipy gradio==4.44.1 sympy==1.13.1
+pip install "httpx[socks]"
+
+# Run sample code
+python main.py
+
+# Run gradio demo
+python app.py
+
+# Run Consistory+ benchmark
+python -m resource.gen_benchmark --save_dir ./result/benchmark --benchmark_path ./resource/consistory+.yaml
+```
 
 
 <p align="center">
