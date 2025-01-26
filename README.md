@@ -111,6 +111,7 @@ display.Image("one_piece_flower.png")
 
 - Anime Background Style Compare
 ```python
+#!huggingface-cli login
 from gradio_client import Client
 from PIL import Image
 from datasets import Dataset
