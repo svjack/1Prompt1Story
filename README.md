@@ -21,6 +21,26 @@
 
 </div>
 
+
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#how-to-use">How To Use</a> •
+  <a href="#license">License</a> •
+  <a href="#Citation">Citation</a> 
+</p>
+
+<p align="center">
+  <img src="./resource/photo.gif" alt="screenshot" />
+</p>
+
+
+## Key Features
+
+* Consistent Identity Image Generation.
+* Gradio Demo.
+* Consistory+ Benchmark: contains 200 prompt sets, with each set containing between 5 and 10 prompts, categorized into 8 superclasses: humans, animals, fantasy, inanimate, fairy tales, nature, technology.
+* Benchmark Generation Code.
+
 ```bash
 sudo apt-get update && sudo apt-get install git-lfs ffmpeg cbm
 
@@ -56,26 +76,6 @@ python app.py
 # Run Consistory+ benchmark
 python -m resource.gen_benchmark --save_dir ./result/benchmark --benchmark_path ./resource/consistory+.yaml
 ```
-
-
-<p align="center">
-  <a href="#key-features">Key Features</a> •
-  <a href="#how-to-use">How To Use</a> •
-  <a href="#license">License</a> •
-  <a href="#Citation">Citation</a> 
-</p>
-
-<p align="center">
-  <img src="./resource/photo.gif" alt="screenshot" />
-</p>
-
-
-## Key Features
-
-* Consistent Identity Image Generation.
-* Gradio Demo.
-* Consistory+ Benchmark: contains 200 prompt sets, with each set containing between 5 and 10 prompts, categorized into 8 superclasses: humans, animals, fantasy, inanimate, fairy tales, nature, technology.
-* Benchmark Generation Code.
 
 
 ## How To Use
