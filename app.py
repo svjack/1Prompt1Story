@@ -152,7 +152,9 @@ def gradio_interface():
         )
         model_path = gr.Dropdown(
             label="Model Path",
-            choices=["stabilityai/stable-diffusion-xl-base-1.0", "RunDiffusion/Juggernaut-X-v10", "playgroundai/playground-v2.5-1024px-aesthetic", "SG161222/RealVisXL_V4.0", "RunDiffusion/Juggernaut-XI-v11", "SG161222/RealVisXL_V5.0"],
+            choices=[
+                "cagliostrolab/animagine-xl-3.1", "svjack/GenshinImpact_XL_Base",
+                "stabilityai/stable-diffusion-xl-base-1.0", "RunDiffusion/Juggernaut-X-v10", "playgroundai/playground-v2.5-1024px-aesthetic", "SG161222/RealVisXL_V4.0", "RunDiffusion/Juggernaut-XI-v11", "SG161222/RealVisXL_V5.0"],
             value="playgroundai/playground-v2.5-1024px-aesthetic",
             allow_custom_value=True
         )
@@ -221,4 +223,5 @@ def gradio_interface():
 
 if __name__ == "__main__":
     demo = gradio_interface()
-    demo.launch(share=True, server_name="3090-v6.byliutao.xyz")
+    demo.launch(share=True, #server_name="3090-v6.byliutao.xyz"
+               )
