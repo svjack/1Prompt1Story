@@ -120,8 +120,10 @@ from tqdm import tqdm  # 导入 tqdm
 # 配置变量
 generated_images_dir = "custom_images_dir"  # 图片保存目录
 generated_dataset_dir = "custom_dataset_dir"  # 数据集保存目录
-series_names = ["One Piece", "Naruto", "Attack on Titan"]  # 漫画名称列表
-styles = ["Anime Style", "Realistic Style", "Watercolor Style"]  # 风格选项
+#series_names = ["One Piece", "Naruto", "Attack on Titan"]  # 漫画名称列表
+#styles = ["Anime Style", "Realistic Style", "Watercolor Style"]  # 风格选项
+series_names = ["One Piece",]  # 漫画名称列表
+styles = ["Anime Style",]  # 风格选项
 
 # 初始化 Gradio 客户端
 client = Client("http://127.0.0.1:7860")
@@ -154,13 +156,13 @@ os.makedirs(generated_images_dir, exist_ok=True)
 data = []
 
 # 使用 tqdm 显示总进度条
-total_iterations = len(model_paths) * len(examples) * len(styles) * len(series_names)
+total_iterations = len(examples) * len(styles) * len(series_names) * len(model_paths)
 with tqdm(total=total_iterations, desc="Generating Images", unit="image") as pbar:
-    # 遍历每个模型、场景、风格和漫画名称
-    for model_path in model_paths:
-        for scene_category, scene_prompt in examples.items():
-            for style in styles:
-                for series_name in series_names:
+    # 遍历每个场景、风格、漫画名称和模型
+    for scene_category, scene_prompt in examples.items():
+        for style in styles:
+            for series_name in series_names:
+                for model_path in model_paths:
                     # 动态生成 id_prompt，替换模板变量
                     id_prompt = f"A quaint illustration of the environment and background in {series_name}, {style}"
                     
@@ -217,7 +219,6 @@ os.makedirs(generated_dataset_dir, exist_ok=True)
 dataset.save_to_disk(generated_dataset_dir)
 
 print(f"数据集生成并保存完成！图片保存到：{generated_images_dir}，数据集保存到：{generated_dataset_dir}")
-
 ```
 
 ## How To Use
