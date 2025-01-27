@@ -585,6 +585,11 @@ bytes_to_image(ds["train"][0]["sub_images"][0]["bytes"]).resize((512, 512))
 
 ```
 
+- AnimateLCM-SVD I2V model
+```bash
+git clone https://huggingface.co/spaces/svjack/AnimateLCM-SVD-Genshin-Impact-Demo && cd AnimateLCM-SVD-Genshin-Impact-Demo && pip install -r requirements.txt
+python app.py
+```
 
 
 ## How To Use
