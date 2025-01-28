@@ -628,6 +628,234 @@ display.Video("vid.mp4", width = 512, height = 512)
 https://github.com/user-attachments/assets/ca136c1c-3392-4f00-9d24-fa6390e53575
 
 
+```python
+import uuid
+from datasets import load_dataset
+from PIL import Image
+import io
+from gradio_client import Client
+import os
+from IPython import display
+
+# 1. 加载数据集
+#ds = load_dataset("svjack/OnePromptOneStory-Examples")["train"].select(range(2))
+ds = load_dataset("svjack/OnePromptOneStory-Examples")
+
+def bytes_to_image(image_bytes):
+    """
+    将字节数据（bytes）转换为 PIL.Image 对象。
+
+    参数:
+        image_bytes (bytes): 图片的字节数据。
+
+    返回:
+        PIL.Image: 转换后的图片对象。
+    """
+    # 使用 io.BytesIO 将字节数据转换为文件流
+    image_stream = io.BytesIO(image_bytes)
+    # 使用 PIL.Image.open 打开图片流
+    image = Image.open(image_stream)
+    return image
+
+# 2. 定义图片分割函数
+def split_image(image, sub_image_width=None, sub_image_height=None):
+    """
+    将图片分割成多个子图片。
+    
+    参数:
+        image (PIL.Image): 输入的图片对象。
+        sub_image_width (int): 每个子图片的宽度。如果为 None，则不水平分割。
+        sub_image_height (int): 每个子图片的高度。如果为 None，则不垂直分割。
+    
+    返回:
+        list: 包含所有子图片的列表。
+    """
+    # 获取图片的宽度和高度
+    width, height = image.size
+    
+    # 初始化子图片列表
+    sub_images = []
+    
+    # 水平分割
+    if sub_image_width is not None:
+        # 计算可以分割成多少个子图片
+        num_horizontal = width // sub_image_width
+        for i in range(num_horizontal):
+            left = i * sub_image_width
+            right = (i + 1) * sub_image_width
+            # 裁剪图片
+            sub_image = image.crop((left, 0, right, height))
+            sub_images.append(sub_image)
+    
+    # 垂直分割
+    if sub_image_height is not None:
+        # 计算可以分割成多少个子图片
+        num_vertical = height // sub_image_height
+        for j in range(num_vertical):
+            top = j * sub_image_height
+            bottom = (j + 1) * sub_image_height
+            # 裁剪图片
+            sub_image = image.crop((0, top, width, bottom))
+            sub_images.append(sub_image)
+    
+    # 如果既没有水平分割也没有垂直分割，返回原图
+    if not sub_images:
+        sub_images.append(image)
+    
+    return sub_images
+
+# 3. 定义一个函数来处理每个样本
+def process_example(example):
+    image = example["Image"]
+    # 调用分割函数，假设水平分割宽度为 1024
+    sub_images = split_image(image, sub_image_width=1024)
+    
+    # 将子图片转换为二进制数据并存储
+    example["sub_images"] = []
+    for sub_image in sub_images:
+        # 将 PIL.Image 转换为二进制数据
+        image_bytes = io.BytesIO()
+        sub_image.save(image_bytes, format="PNG")
+        example["sub_images"].append({"bytes": image_bytes.getvalue()})  # 存储为字典
+    
+    return example
+
+# 4. 应用函数到整个数据集
+ds = ds.map(process_example, num_proc=6)
+
+# 5. 定义生成视频的函数
+def generate_video(image_bytes, motion_bucket_id):
+    # 将二进制数据还原为 PIL.Image 对象
+    image = bytes_to_image(image_bytes)
+    
+    # 保存为临时文件
+    unique_filename = str(uuid.uuid4()) + ".png"
+    image.save(unique_filename)
+    
+    # 调用 Gradio 客户端生成视频
+    client = Client("http://127.0.0.1:7860")
+    result = client.predict(
+        unique_filename,  # filepath  in 'Upload your image' Image component
+        0,  # float (numeric value between 0 and 9223372036854775807) in 'Seed' Slider component
+        True,  # bool  in 'Randomize seed' Checkbox component
+        motion_bucket_id,  # float (numeric value between 1 and 255) in 'Motion bucket id' Slider component
+        8,  # float (numeric value between 5 and 30) in 'Frames per second' Slider component
+        1.2,  # float (numeric value between 1 and 2) in 'Max guidance scale' Slider component
+        1,  # float (numeric value between 1 and 1.5) in 'Min guidance scale' Slider component
+        1024,  # float (numeric value between 576 and 2048) in 'Width of input image' Slider component
+        1024,  # float (numeric value between 320 and 1152) in 'Height of input image' Slider component
+        4,  # float (numeric value between 1 and 20) in 'Num inference steps' Slider component
+        api_name="/video"
+    )
+    
+    # 删除临时文件
+    os.remove(unique_filename)
+    
+    # 读取视频文件为二进制数据
+    with open(result[0]["video"], "rb") as video_file:
+        video_bytes = video_file.read()
+    
+    # 删除生成的视频文件
+    os.remove(result[0]["video"])
+    
+    return video_bytes
+
+# 6. 将生成的视频序列添加到数据集
+def add_video_to_example(example):
+    example["videos"] = []
+    for sub_image_dict in example["sub_images"]:
+        image_bytes = sub_image_dict["bytes"]  # 从字典中提取二进制数据
+        for motion_bucket_id in [10, 20, 30, 40, 50]:
+            video_bytes = generate_video(image_bytes, motion_bucket_id)
+            example["videos"].append({"video_bytes": video_bytes, "motion_bucket_id": motion_bucket_id})
+    return example
+
+# 7. 应用函数到整个数据集
+ds = ds.map(add_video_to_example, num_proc=1)
+
+# 8. 保存数据集到磁盘
+ds.save_to_disk("example_video_dataset")
+```
+
+```python
+from datasets import load_from_disk
+from PIL import Image
+from IPython import display
+import io
+
+def bytes_to_image(image_bytes):
+    """
+    将字节数据（bytes）转换为 PIL.Image 对象。
+
+    参数:
+        image_bytes (bytes): 图片的字节数据。
+
+    返回:
+        PIL.Image: 转换后的图片对象。
+    """
+    # 使用 io.BytesIO 将字节数据转换为文件流
+    image_stream = io.BytesIO(image_bytes)
+    # 使用 PIL.Image.open 打开图片流
+    image = Image.open(image_stream)
+    return image
+
+# 加载数据集
+ds = load_from_disk("example_video_dataset")
+### ds.push_to_hub("svjack/OnePromptOneStory-Examples-Vid-head2")
+### ds.push_to_hub("svjack/OnePromptOneStory-Examples-Vid")
+
+# 获取第一个样本
+example = ds[0]
+
+# 选择第 idx 个子图片和对应的视频
+idx = 2  # 假设选择第 2 个子图片
+
+# 获取子图片
+sub_image_dict = example["sub_images"][idx]  # 获取第 idx 个子图片的字典
+sub_image_bytes = sub_image_dict["bytes"]  # 获取二进制数据
+sub_image = bytes_to_image(sub_image_bytes)  # 还原为 PIL.Image 对象
+sub_image
+
+# 获取对应的视频
+# 假设每个子图片生成 5 个视频（对应不同的 motion_bucket_id）
+motion_bucket_ids = [10, 20, 30, 40, 50]  # 假设 motion_bucket_id 的取值
+video_idx = idx * len(motion_bucket_ids)  # 计算视频的起始索引
+
+# 遍历该子图片对应的所有视频
+for i, motion_bucket_id in enumerate(motion_bucket_ids):
+    video_dict = example["videos"][video_idx + i]  # 获取对应的视频字典
+    video_bytes = video_dict["video_bytes"]  # 获取二进制数据
+
+    # 将二进制数据保存为 MP4 文件
+    def bytes_to_video(video_bytes, output_path="output.mp4"):
+        """
+        将二进制数据转换为视频文件并保存到指定路径。
+
+        参数:
+            video_bytes (bytes): 视频的二进制数据。
+            output_path (str): 视频文件的保存路径。
+
+        返回:
+            str: 视频文件的路径。
+        """
+        with open(output_path, "wb") as video_file:
+            video_file.write(video_bytes)
+        return output_path
+
+    # 保存视频并显示
+    video_path = bytes_to_video(video_bytes, f"example_video_{motion_bucket_id}.mp4")  # 保存为 MP4 文件
+    print(f"Displaying video for sub_image {idx} with motion_bucket_id {motion_bucket_id}")
+    display.Video(video_path, width=512, height=512)  # 在 Jupyter Notebook 中显示视频
+
+display.Video("example_video_30.mp4", width=512, height=512)  # 在 Jupyter Notebook 中显示视频
+```
+
+![im1](https://github.com/user-attachments/assets/30ea9f27-7dc9-461e-a55e-1046330fa7dd)
+
+
+
+https://github.com/user-attachments/assets/fd41f9b8-3896-4caf-bf62-4b8b449b7271
+
 
 
 ## How To Use
