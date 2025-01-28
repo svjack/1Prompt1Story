@@ -586,13 +586,48 @@ print(ds["train"][0]["sub_images"])
 
 # 6. 显示第一张子图片（可选）
 bytes_to_image(ds["train"][0]["sub_images"][0]["bytes"])
+
+bytes_to_image(ds["train"][0]["sub_images"][0]["bytes"]).save("im.png")
 ```
+
+![im](https://github.com/user-attachments/assets/8df2c81c-ec65-4440-bf48-a9e100ef195f)
+
 
 - AnimateLCM-SVD I2V model
 ```bash
 git clone https://huggingface.co/spaces/svjack/AnimateLCM-SVD-Genshin-Impact-Demo && cd AnimateLCM-SVD-Genshin-Impact-Demo && pip install -r requirements.txt
 python app.py
 ```
+
+```python
+from gradio_client import Client
+
+client = Client("http://127.0.0.1:7860")
+result = client.predict(
+		"im.png",	# filepath  in 'Upload your image' Image component
+		0,	# float (numeric value between 0 and 9223372036854775807) in 'Seed' Slider component
+		True,	# bool  in 'Randomize seed' Checkbox component
+		20,	# float (numeric value between 1 and 255) in 'Motion bucket id' Slider component
+		8,	# float (numeric value between 5 and 30) in 'Frames per second' Slider component
+		1.2,	# float (numeric value between 1 and 2) in 'Max guidance scale' Slider component
+		1,	# float (numeric value between 1 and 1.5) in 'Min guidance scale' Slider component
+		1024,	# float (numeric value between 576 and 2048) in 'Width of input image' Slider component
+		1024,	# float (numeric value between 320 and 1152) in 'Height of input image' Slider component
+		4,	# float (numeric value between 1 and 20) in 'Num inference steps' Slider component
+		api_name="/video"
+)
+print(result)
+
+from shutil import copy2
+from IPython import display
+copy2(result[0]["video"], "vid.mp4")
+display.Video("vid.mp4", width = 512, height = 512)
+```
+
+
+https://github.com/user-attachments/assets/ca136c1c-3392-4f00-9d24-fa6390e53575
+
+
 
 
 ## How To Use
