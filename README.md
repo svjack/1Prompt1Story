@@ -635,148 +635,138 @@ from PIL import Image
 import io
 from gradio_client import Client
 import os
-from IPython import display
-
-# 1. 加载数据集
-#ds = load_dataset("svjack/OnePromptOneStory-Examples")["train"].select(range(2))
-ds = load_dataset("svjack/OnePromptOneStory-Examples")
-#ds = load_dataset("svjack/OnePromptOneStory-AnimeStyle")
+import argparse
 
 def bytes_to_image(image_bytes):
-    """
-    将字节数据（bytes）转换为 PIL.Image 对象。
-
-    参数:
-        image_bytes (bytes): 图片的字节数据。
-
-    返回:
-        PIL.Image: 转换后的图片对象。
-    """
-    # 使用 io.BytesIO 将字节数据转换为文件流
     image_stream = io.BytesIO(image_bytes)
-    # 使用 PIL.Image.open 打开图片流
     image = Image.open(image_stream)
     return image
 
-# 2. 定义图片分割函数
 def split_image(image, sub_image_width=None, sub_image_height=None):
-    """
-    将图片分割成多个子图片。
-    
-    参数:
-        image (PIL.Image): 输入的图片对象。
-        sub_image_width (int): 每个子图片的宽度。如果为 None，则不水平分割。
-        sub_image_height (int): 每个子图片的高度。如果为 None，则不垂直分割。
-    
-    返回:
-        list: 包含所有子图片的列表。
-    """
-    # 获取图片的宽度和高度
     width, height = image.size
-    
-    # 初始化子图片列表
     sub_images = []
     
-    # 水平分割
     if sub_image_width is not None:
-        # 计算可以分割成多少个子图片
         num_horizontal = width // sub_image_width
         for i in range(num_horizontal):
             left = i * sub_image_width
             right = (i + 1) * sub_image_width
-            # 裁剪图片
             sub_image = image.crop((left, 0, right, height))
             sub_images.append(sub_image)
     
-    # 垂直分割
     if sub_image_height is not None:
-        # 计算可以分割成多少个子图片
         num_vertical = height // sub_image_height
         for j in range(num_vertical):
             top = j * sub_image_height
             bottom = (j + 1) * sub_image_height
-            # 裁剪图片
             sub_image = image.crop((0, top, width, bottom))
             sub_images.append(sub_image)
     
-    # 如果既没有水平分割也没有垂直分割，返回原图
     if not sub_images:
         sub_images.append(image)
     
     return sub_images
 
-# 3. 定义一个函数来处理每个样本
 def process_example(example):
     image = example["Image"]
-    # 调用分割函数，假设水平分割宽度为 1024
     sub_images = split_image(image, sub_image_width=1024)
     
-    # 将子图片转换为二进制数据并存储
     example["sub_images"] = []
     for sub_image in sub_images:
-        # 将 PIL.Image 转换为二进制数据
         image_bytes = io.BytesIO()
         sub_image.save(image_bytes, format="PNG")
-        example["sub_images"].append({"bytes": image_bytes.getvalue()})  # 存储为字典
+        example["sub_images"].append({"bytes": image_bytes.getvalue()})
     
     return example
 
-# 4. 应用函数到整个数据集
-ds = ds.map(process_example, num_proc=6)
-
-# 5. 定义生成视频的函数
 def generate_video(image_bytes, motion_bucket_id):
-    # 将二进制数据还原为 PIL.Image 对象
     image = bytes_to_image(image_bytes)
-    
-    # 保存为临时文件
     unique_filename = str(uuid.uuid4()) + ".png"
     image.save(unique_filename)
     
-    # 调用 Gradio 客户端生成视频
     client = Client("http://127.0.0.1:7860")
     result = client.predict(
-        unique_filename,  # filepath  in 'Upload your image' Image component
-        0,  # float (numeric value between 0 and 9223372036854775807) in 'Seed' Slider component
-        True,  # bool  in 'Randomize seed' Checkbox component
-        motion_bucket_id,  # float (numeric value between 1 and 255) in 'Motion bucket id' Slider component
-        8,  # float (numeric value between 5 and 30) in 'Frames per second' Slider component
-        1.2,  # float (numeric value between 1 and 2) in 'Max guidance scale' Slider component
-        1,  # float (numeric value between 1 and 1.5) in 'Min guidance scale' Slider component
-        1024,  # float (numeric value between 576 and 2048) in 'Width of input image' Slider component
-        1024,  # float (numeric value between 320 and 1152) in 'Height of input image' Slider component
-        4,  # float (numeric value between 1 and 20) in 'Num inference steps' Slider component
-        api_name="/video"
+        unique_filename, 0, True, motion_bucket_id, 8, 1.2, 1, 1024, 1024, 4, api_name="/video"
     )
     
-    # 删除临时文件
     os.remove(unique_filename)
     
-    # 读取视频文件为二进制数据
     with open(result[0]["video"], "rb") as video_file:
         video_bytes = video_file.read()
     
-    # 删除生成的视频文件
     os.remove(result[0]["video"])
     
     return video_bytes
 
-# 6. 将生成的视频序列添加到数据集
 def add_video_to_example(example):
     example["videos"] = []
     for sub_image_dict in example["sub_images"]:
-        image_bytes = sub_image_dict["bytes"]  # 从字典中提取二进制数据
+        image_bytes = sub_image_dict["bytes"]
         for motion_bucket_id in [10, 20, 30, 40, 50]:
             video_bytes = generate_video(image_bytes, motion_bucket_id)
             example["videos"].append({"video_bytes": video_bytes, "motion_bucket_id": motion_bucket_id})
     return example
 
-# 7. 应用函数到整个数据集
-ds = ds.map(add_video_to_example, num_proc=1)
+def main(dataset_name, start_index, end_index, output_dir):
+    # 加载数据集并选择 "train" 子集
+    ds = load_dataset(dataset_name)["train"].select(range(start_index, end_index))
+    
+    # 处理数据集
+    ds = ds.map(process_example, num_proc=6)
+    ds = ds.map(add_video_to_example, num_proc=1)
+    
+    # 保存处理后的数据集
+    output_path = os.path.join(output_dir, f"dataset_{start_index}_{end_index}")
+    ds.save_to_disk(output_path)
+    print(f"Dataset saved to {output_path}")
 
-# 8. 保存数据集到磁盘
-ds.save_to_disk("example_video_dataset")
-# ds.save_to_disk("anime_video_dataset")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Process a dataset and generate videos.")
+    parser.add_argument("--dataset_name", type=str, default="svjack/OnePromptOneStory-Examples", 
+                        help="Name of the dataset to process (default: svjack/OnePromptOneStory-Examples)")
+    parser.add_argument("--start", type=int, required=True, help="Start index of the dataset")
+    parser.add_argument("--end", type=int, required=True, help="End index of the dataset")
+    parser.add_argument("--output_dir", type=str, required=True, help="Output directory to save the dataset")
+    
+    args = parser.parse_args()
+    
+    main(args.dataset_name, args.start, args.end, args.output_dir)
+```
+
+```bash
+#!/bin/bash
+
+# 数据集名称
+DATASET_NAME="svjack/OnePromptOneStory-Examples"
+
+# 输出目录
+OUTPUT_DIR="OnePromptOneStory-Examples"
+
+# 数据集总大小
+TOTAL_ITEMS=98
+
+# 每次处理的样本数量
+BATCH_SIZE=5
+
+# 创建输出目录
+mkdir -p "$OUTPUT_DIR"
+
+# 循环处理数据集
+for ((START=0; START<TOTAL_ITEMS; START+=BATCH_SIZE)); do
+    END=$((START + BATCH_SIZE))
+    if ((END > TOTAL_ITEMS)); then
+        END=$TOTAL_ITEMS
+    fi
+
+    echo "Processing items from $START to $((END-1))..."
+
+    # 调用 Python 脚本
+    python Exp.py --dataset_name "$DATASET_NAME" --start "$START" --end "$END" --output_dir "$OUTPUT_DIR"
+
+    echo "Finished processing items from $START to $((END-1))."
+done
+
+echo "All items processed and saved to $OUTPUT_DIR."
 ```
 
 ```python
