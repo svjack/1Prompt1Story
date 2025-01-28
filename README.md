@@ -640,6 +640,7 @@ from IPython import display
 # 1. 加载数据集
 #ds = load_dataset("svjack/OnePromptOneStory-Examples")["train"].select(range(2))
 ds = load_dataset("svjack/OnePromptOneStory-Examples")
+#ds = load_dataset("svjack/OnePromptOneStory-AnimeStyle")
 
 def bytes_to_image(image_bytes):
     """
@@ -775,6 +776,7 @@ ds = ds.map(add_video_to_example, num_proc=1)
 
 # 8. 保存数据集到磁盘
 ds.save_to_disk("example_video_dataset")
+# ds.save_to_disk("anime_video_dataset")
 ```
 
 ```python
@@ -803,6 +805,9 @@ def bytes_to_image(image_bytes):
 ds = load_from_disk("example_video_dataset")
 ### ds.push_to_hub("svjack/OnePromptOneStory-Examples-Vid-head2")
 ### ds.push_to_hub("svjack/OnePromptOneStory-Examples-Vid")
+
+### ds = load_from_disk("anime_video_dataset")
+### ds.push_to_hub("svjack/OnePromptOneStory-AnimeStyle-Vid")
 
 # 获取第一个样本
 example = ds[0]
