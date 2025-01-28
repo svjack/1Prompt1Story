@@ -494,6 +494,11 @@ ds.push_to_hub("svjack/OnePromptOneStory-Examples")
 
 
 print(f"数据集生成并保存完成！图片保存到：{generated_images_dir}，数据集保存到：{generated_dataset_dir}")
+```
+
+```python
+!pip install -U gradio_client
+!pip install datasets
 
 from datasets import load_dataset
 from PIL import Image
@@ -580,9 +585,7 @@ ds = ds.map(process_example, num_proc = 6)
 print(ds["train"][0]["sub_images"])
 
 # 6. 显示第一张子图片（可选）
-bytes_to_image(ds["train"][0]["sub_images"][0]["bytes"]).resize((512, 512))
-
-
+bytes_to_image(ds["train"][0]["sub_images"][0]["bytes"])
 ```
 
 - AnimateLCM-SVD I2V model
