@@ -1088,8 +1088,8 @@ root_dir = "result_cp/benchmark/"
 dataset_dict = {}
 
 # 遍历 model_name 和 animal 文件夹
-model_data = {"model_name": [], "label": [],"image": [],
-                 }
+model_data = {"model_name": [], "label": [], "image_name": [], "image": [], }  # 新增 "image_name" 列
+
 for model_name in os.listdir(root_dir):
     model_path = os.path.join(root_dir, model_name)
     if not os.path.isdir(model_path):
@@ -1111,6 +1111,9 @@ for model_name in os.listdir(root_dir):
                 model_data["image"].append(image)
                 model_data["label"].append(animal_folder)
                 model_data["model_name"].append(model_name)
+                # 添加图片名称（去掉扩展名）
+                image_name = os.path.splitext(image_file)[0]  # 去掉扩展名
+                model_data["image_name"].append(image_name)
 
 # 将当前 model_name 的数据转换为 Hugging Face Dataset
 dataset_dict["train"] = Dataset.from_dict(model_data)
