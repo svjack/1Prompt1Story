@@ -770,6 +770,80 @@ echo "All items processed and saved to $OUTPUT_DIR."
 ```
 
 ```python
+from datasets import load_from_disk, concatenate_datasets
+import pathlib 
+import os
+import pandas as pd
+import numpy as np
+l = sorted(pd.Series(list(pathlib.Path("OnePromptOneStory-Examples/").rglob("dataset_*"))).map(
+    lambda x: x if os.path.isdir(x) else np.nan
+).dropna().map(str).values.tolist(), key = lambda x: 
+       list(map(int ,x.split("_")[-2:]))
+      )
+ds_l = list(map(load_from_disk, l))
+ds = concatenate_datasets(ds_l)
+ds.push_to_hub("svjack/OnePromptOneStory-Examples-Vid-head75")
+
+from datasets import Dataset, load_dataset
+from PIL import Image
+import io
+
+def bytes_to_image(image_bytes):
+    """
+    将字节数据（bytes）转换为 PIL.Image 对象。
+    """
+    image_stream = io.BytesIO(image_bytes)
+    image = Image.open(image_stream)
+    return image
+
+# 加载数据集
+ds = load_dataset("svjack/OnePromptOneStory-Examples-Vid-head75")["train"]
+
+# 定义 motion_bucket_ids
+motion_bucket_ids = [10, 20, 30, 40, 50]
+
+# 创建一个新的数据集列表
+new_data = []
+
+# 遍历原始数据集中的每一行
+for example in ds:
+    sub_images = example["sub_images"]
+    videos = example["videos"]
+    
+    # 遍历每个 sub_image
+    for idx, sub_image_dict in enumerate(sub_images):
+        sub_image_bytes = sub_image_dict["bytes"]
+        sub_image = bytes_to_image(sub_image_bytes)
+        
+        # 计算对应的视频索引
+        video_idx = idx * len(motion_bucket_ids)
+        
+        # 遍历每个 motion_bucket_id 和对应的视频
+        for i, motion_bucket_id in enumerate(motion_bucket_ids):
+            video_dict = videos[video_idx + i]
+            video_bytes = video_dict["video_bytes"]  # 视频的二进制数据
+            
+            # 创建新的样本，保留原始数据的所有字段
+            new_sample = {
+                **example,  # 保留原始数据的所有字段
+                "sub_image": sub_image,
+                "motion_bucket_id": motion_bucket_id,
+                "video": video_bytes  # 直接存储视频的二进制数据
+            }
+            
+            # 添加到新数据集中
+            new_data.append(new_sample)
+
+# 将新数据转换为 Hugging Face Dataset 对象
+new_dataset = Dataset.from_list(new_data)
+
+# 查看新数据集中的第一个样本
+#print(new_dataset[0])
+
+new_dataset.push_to_hub("svjack/OnePromptOneStory-Examples-Vid-head75-Exp")
+```
+
+```python
 from datasets import load_from_disk
 from PIL import Image
 from IPython import display
