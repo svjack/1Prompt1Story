@@ -1076,6 +1076,54 @@ echo "All tasks completed!"
 - **Shell 脚本**：整合所有命令到一个脚本中，方便一次性运行所有任务。
 - **保存路径**：根据模型名称自动生成保存路径，确保结果不会混淆。
 
+```python
+from datasets import load_dataset, DatasetDict, Dataset
+import os
+from PIL import Image
+
+# 定义根目录
+root_dir = "result_cp/benchmark/"
+
+# 初始化数据集字典
+dataset_dict = {}
+
+# 遍历 model_name 和 animal 文件夹
+model_data = {"model_name": [], "label": [],"image": [],
+                 }
+for model_name in os.listdir(root_dir):
+    model_path = os.path.join(root_dir, model_name)
+    if not os.path.isdir(model_path):
+        continue
+
+    # 初始化当前 model_name 的数据集
+
+    for animal_folder in os.listdir(model_path):
+        animal_path = os.path.join(model_path, animal_folder)
+        if not os.path.isdir(animal_path):
+            continue
+
+        # 遍历图像文件
+        for image_file in os.listdir(animal_path):
+            image_path = os.path.join(animal_path, image_file)
+            if image_file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                # 打开图像
+                image = Image.open(image_path)
+                model_data["image"].append(image)
+                model_data["label"].append(animal_folder)
+                model_data["model_name"].append(model_name)
+
+# 将当前 model_name 的数据转换为 Hugging Face Dataset
+dataset_dict["train"] = Dataset.from_dict(model_data)
+
+# 合并所有 model_name 的数据集
+full_dataset = DatasetDict(dataset_dict)
+
+# 查看数据集
+print(full_dataset)
+
+# full_dataset.push_to_hub("svjack/OnePromptOneStory-animagine-xl-4-0-Animal")
+```
+
 
 
 ## How To Use
