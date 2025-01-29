@@ -57,7 +57,7 @@ def main():
     for device in devices:
         pipe, _ = utils.load_pipe_from_path(args.model_path, device, torch.float16 if args.precision == "fp16" else torch.float32, args.precision)
         unet_controller = load_unet_controller(pipe, device)
-        unet_controller.Save_story_image = False
+        unet_controller.Save_story_image = True
         unet_controller.Prompt_embeds_mode = "svr-eot"
         # unet_controller.Is_freeu_enabled = True
         unet_controllers[device] = unet_controller
