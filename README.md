@@ -832,7 +832,7 @@ for example in tqdm(ds):
             }
 
             new_sample = dict(
-                filter(lambda t2: t2 not in ["sub_images", "videos"], new_sample.items())
+                filter(lambda t2: t2[0] not in ["sub_images", "videos"], new_sample.items())
             )
             # 添加到新数据集中
             new_data.append(new_sample)
