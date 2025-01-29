@@ -852,6 +852,157 @@ display.Video("example_video_30.mp4", width=512, height=512)  # 在 Jupyter Note
 https://github.com/user-attachments/assets/fd41f9b8-3896-4caf-bf62-4b8b449b7271
 
 
+## Benchmark 
+
+---
+
+### 独立运行命令
+
+1. **`cagliostrolab/animagine-xl-4.0`**
+   ```bash
+   python -m resource.gen_benchmark \
+       --save_dir ./result/benchmark/cagliostrolab_animagine-xl-4.0 \
+       --benchmark_path ./resource/consistory+.yaml \
+       --device cuda:0 \
+       --num_gpus 1 \
+       --model_path "cagliostrolab/animagine-xl-4.0"
+   ```
+
+2. **`cagliostrolab/animagine-xl-3.1`**
+   ```bash
+   python -m resource.gen_benchmark \
+       --save_dir ./result/benchmark/cagliostrolab_animagine-xl-3.1 \
+       --benchmark_path ./resource/consistory+.yaml \
+       --device cuda:0 \
+       --num_gpus 1 \
+       --model_path "cagliostrolab/animagine-xl-3.1"
+   ```
+
+3. **`svjack/GenshinImpact_XL_Base`**
+   ```bash
+   python -m resource.gen_benchmark \
+       --save_dir ./result/benchmark/svjack_GenshinImpact_XL_Base \
+       --benchmark_path ./resource/consistory+.yaml \
+       --device cuda:0 \
+       --num_gpus 1 \
+       --model_path "svjack/GenshinImpact_XL_Base"
+   ```
+
+4. **`stabilityai/stable-diffusion-xl-base-1.0`**
+   ```bash
+   python -m resource.gen_benchmark \
+       --save_dir ./result/benchmark/stabilityai_stable-diffusion-xl-base-1.0 \
+       --benchmark_path ./resource/consistory+.yaml \
+       --device cuda:0 \
+       --num_gpus 1 \
+       --model_path "stabilityai/stable-diffusion-xl-base-1.0"
+   ```
+
+5. **`RunDiffusion/Juggernaut-X-v10`**
+   ```bash
+   python -m resource.gen_benchmark \
+       --save_dir ./result/benchmark/RunDiffusion_Juggernaut-X-v10 \
+       --benchmark_path ./resource/consistory+.yaml \
+       --device cuda:0 \
+       --num_gpus 1 \
+       --model_path "RunDiffusion/Juggernaut-X-v10"
+   ```
+
+6. **`playgroundai/playground-v2.5-1024px-aesthetic`**
+   ```bash
+   python -m resource.gen_benchmark \
+       --save_dir ./result/benchmark/playgroundai_playground-v2.5-1024px-aesthetic \
+       --benchmark_path ./resource/consistory+.yaml \
+       --device cuda:0 \
+       --num_gpus 1 \
+       --model_path "playgroundai/playground-v2.5-1024px-aesthetic"
+   ```
+
+7. **`SG161222/RealVisXL_V4.0`**
+   ```bash
+   python -m resource.gen_benchmark \
+       --save_dir ./result/benchmark/SG161222_RealVisXL_V4.0 \
+       --benchmark_path ./resource/consistory+.yaml \
+       --device cuda:0 \
+       --num_gpus 1 \
+       --model_path "SG161222/RealVisXL_V4.0"
+   ```
+
+8. **`RunDiffusion/Juggernaut-XI-v11`**
+   ```bash
+   python -m resource.gen_benchmark \
+       --save_dir ./result/benchmark/RunDiffusion_Juggernaut-XI-v11 \
+       --benchmark_path ./resource/consistory+.yaml \
+       --device cuda:0 \
+       --num_gpus 1 \
+       --model_path "RunDiffusion/Juggernaut-XI-v11"
+   ```
+
+---
+
+### 整合到 Shell 脚本
+
+如果你希望将这些命令整合到一个 Shell 脚本中，可以按照以下方式编写：
+
+```bash
+#!/bin/bash
+
+# 定义模型列表（svjack/GenshinImpact_XL_Base 排在 Anime 模型之后）
+models=(
+    "cagliostrolab/animagine-xl-4.0"
+    "cagliostrolab/animagine-xl-3.1"
+    "svjack/GenshinImpact_XL_Base"
+    "stabilityai/stable-diffusion-xl-base-1.0"
+    "RunDiffusion/Juggernaut-X-v10"
+    "playgroundai/playground-v2.5-1024px-aesthetic"
+    "SG161222/RealVisXL_V4.0"
+    "RunDiffusion/Juggernaut-XI-v11"
+)
+
+# 遍历模型列表并运行任务
+for model_path in "${models[@]}"; do
+    # 根据模型名称生成保存路径
+    save_dir="./result/benchmark/$(echo $model_path | tr '/' '_')"
+    
+    echo "Running model: $model_path"
+    echo "Saving results to: $save_dir"
+
+    # 运行命令
+    python -m resource.gen_benchmark \
+        --save_dir "$save_dir" \
+        --benchmark_path ./resource/consistory+.yaml \
+        --device cuda:0 \
+        --num_gpus 1 \
+        --model_path "$model_path"
+
+    echo "Finished running model: $model_path"
+    echo "----------------------------------------"
+done
+
+echo "All tasks completed!"
+```
+
+---
+
+### 使用方法
+1. 将上述脚本保存为 `run_models.sh`。
+2. 赋予脚本执行权限：
+   ```bash
+   chmod +x run_models.sh
+   ```
+3. 运行脚本：
+   ```bash
+   ./run_models.sh
+   ```
+
+---
+
+### 总结
+- **独立命令**：每个模型的运行命令都已单独列出，方便单独执行。
+- **Shell 脚本**：整合所有命令到一个脚本中，方便一次性运行所有任务。
+- **保存路径**：根据模型名称自动生成保存路径，确保结果不会混淆。
+
+
 
 ## How To Use
 
