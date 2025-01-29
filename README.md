@@ -806,7 +806,7 @@ motion_bucket_ids = [10, 20, 30, 40, 50]
 new_data = []
 
 # 遍历原始数据集中的每一行
-for example in ds:
+for example in tqdm(ds):
     sub_images = example["sub_images"]
     videos = example["videos"]
     
@@ -830,10 +830,14 @@ for example in ds:
                 "motion_bucket_id": motion_bucket_id,
                 "video": video_bytes  # 直接存储视频的二进制数据
             }
-            
+
+            new_sample = dict(
+                filter(lambda t2: t2 not in ["sub_images", "videos"], new_sample.items())
+            )
             # 添加到新数据集中
             new_data.append(new_sample)
 
+print(len(new_data))
 # 将新数据转换为 Hugging Face Dataset 对象
 new_dataset = Dataset.from_list(new_data)
 
