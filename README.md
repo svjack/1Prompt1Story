@@ -61,7 +61,7 @@ python -m ipykernel install --user --name 1p1s --display-name "1p1s"
 
 # Install PyTorch with CUDA 12.1
 #pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-pip install torch torchvision torchaudio
+pip install torch==2.5.0 torchvision torchaudio
 
 # Install other dependencies using pip
 pip install transformers diffusers opencv-python scipy gradio==4.44.1 sympy==1.13.1
