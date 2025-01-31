@@ -146,3 +146,31 @@ dss.map(lambda x: {
 ).remove_columns([
     "sub_images" ,"comparison_results"
 ]).sort("max_score").push_to_hub("svjack/OnePromptOneStory-animagine-xl-4-0-CCIP")
+
+
+from huggingface_hub import HfApi
+from datasets import load_dataset, concatenate_datasets, Dataset
+
+# 初始化 HfApi 客户端
+api = HfApi()
+
+# 获取用户 'svjack' 下的所有数据集
+datasets = api.list_datasets(author="svjack")
+
+# 过滤出以 "-CCIP" 结尾且不包含 "Examples" 的数据集名称
+ccip_datasets = [
+    dataset.id for dataset in datasets 
+    if dataset.id.endswith("-CCIP") and "Examples" not in dataset.id
+]
+
+# 加载所有过滤后的数据集
+loaded_datasets = [load_dataset(dataset)["train"] for dataset in ccip_datasets]
+
+# 合并所有数据集
+merged_dataset = concatenate_datasets(loaded_datasets)
+
+# 按 "max_score" 排序
+sorted_dataset = merged_dataset.sort("max_score")
+
+# 推送到 Hugging Face Hub
+sorted_dataset.push_to_hub("svjack/OnePromptOneStory-CCIP-Merged")
